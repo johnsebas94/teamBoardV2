@@ -78,8 +78,21 @@ const deleteTask = async (req, res) => {
   const validId = mongoose.Types.ObjectId.isValid(req.params._id);
   if (!validId) return res.status(400).send("Invalid id");
 
+  //Para que antes de eliminar la tarea se saquen los elementos que contiene la tarea
+  let taskImg = await Board.findById(req.params._id);
+  taskImg = taskImg.imageUrl;
+  //Separar por / y elegir la posicion 4 done esta el nombre de la imagen
+  taskImg = taskImg.split("/")[4]; 
+  let serverImg = "./uploads/" + taskImg; //para ir a una ruta interna necesito del .
+
   const board = await Board.findByIdAndDelete(req.params._id);
   if (!board) return res.status(400).send("Task not found");
+
+  try {
+    fs.unlinkSync(serverImg);
+  } catch (e) {
+    console.log("Image no found in server");
+  }
   return res.status(200).send({ message: "Task deleted" });
 };
 
